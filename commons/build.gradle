@@ -1,0 +1,11 @@
+archivesBaseName = "gimac-common"
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = "gimac-common"
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+}

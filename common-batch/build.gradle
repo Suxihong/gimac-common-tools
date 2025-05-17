@@ -1,0 +1,15 @@
+dependencies {
+    implementation project(':commons')
+}
+
+archivesBaseName = "gimac-common-batch"
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = "gimac-common-batch"
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+}

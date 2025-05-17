@@ -1,0 +1,150 @@
+spring:
+  application:
+    name: common-tools
+
+# spring boot 2.7.+
+server.servlet.session.cookie.same-site: lax
+spring.mvc.pathmatch.matching-strategy: ant-path-matcher
+
+gimac:
+  module: BOM
+
+## Default jpa config
+spring.jpa:
+  open-in-view: false
+  show-sql: false
+  properties:
+    hibernate:
+      hbm2ddl.auto: none
+      jdbc.batch_size: 50
+    jadira:
+      usertype:
+        useJdbc42Apis: true
+solid:
+  report:
+    jxls:
+      baseLocation: reports/
+      defaultExtension: .xlsx
+
+solid.report.jasper:
+  base-location: reportTemplate/
+
+## Server
+server:
+  servlet:
+    context-path: /tools
+    session:
+      cookie:
+        http-only: true
+        secure: true
+
+server.port: ${SERVER_PORT:8080}
+
+## Mvc
+spring.mvc.view:
+  prefix: /static-res/
+  suffix: .html
+
+
+## Mvc i18n
+spring.messages:
+  basename: static/resources/messages/pjCommon, static/resources/messages/base_validation, static/resources/messages/base
+  use-code-as-default-message: true #'label.xx' => display 'label.xx' if it's absent.
+
+
+logging:
+  config: classpath:logback-console.xml
+
+spring.flyway.enabled: false
+
+solid.login.record-login-event: true
+solid.login.token-base: true
+
+spring.profiles.group:
+  escort-dev:
+    - development
+    - dummy-auth
+    - psql
+    #- redis
+  dev:
+    - development
+    - single-login
+    - psql
+    #- redis
+  production:
+    - single-login
+    - db-production
+    #- redis
+
+---
+spring.config.activate.on-profile: h2
+
+spring.jpa:
+  generate-ddl: true
+  hibernate:
+    ddl-auto: update
+
+spring.datasource:
+  url: jdbc:h2:mem:demo_master;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+  driverClassName: org.h2.Driver
+  username: sa
+  password:
+  xa:
+    dataSourceClassName: org.h2.jdbcx.JdbcDataSource
+spring:
+  sql:
+    init:
+      schema-locations: #Run scripts after datasource has created.
+        - classpath*:sql/schema.sql
+      data-locations:
+        - classpath*:sql/data.sql
+  h2:
+    console:
+      enabled: true
+
+---
+spring.config.activate.on-profile: psql
+
+spring.jpa:
+  database: POSTGRESQL
+  database-platform: org.hibernate.dialect.PostgreSQLDialect
+  properties:
+    hibernate.temp.use_jdbc_metadata_defaults: false
+
+spring.datasource:
+  url: jdbc:postgresql://localhost:15432/postgres
+  driverClassName: org.postgresql.Driver
+  username: postgres
+  password: postgres
+  xa:
+    dataSourceClassName: org.postgresql.xa.PGXADataSource
+
+---
+spring.config.activate.on-profile: flyway
+
+spring.flyway:
+  enabled: true
+  url: jdbc:postgresql://localhost:15432/postgres-flyway
+  user: postgres
+  password: foo
+  driver-class-name: org.postgresql.Driver
+  locations: classpath:db/
+  sql-migration-suffixes: .sql
+
+---
+spring.config.activate.on-profile: redis
+
+spring.data.redis:
+  ssl.enabled: true
+  host: localhost
+  port: 16379
+  database: 0
+
+---
+spring.config.activate.on-profile: dummy-auth
+
+# for dummy-auth and no-auth
+solid.pj.login.dummy:
+  allow-origins: http://localhost:[*], http://escort.com:[*], http://10.191.41.112:[*], https://escort.yna-g3.com:[*], https://training.escort.yna-g3.com:[*]
+  username: ADMIN
+  siteId: "0000"

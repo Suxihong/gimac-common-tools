@@ -1,0 +1,82 @@
+plugins {
+    id 'com.ymsl.solid.build.java-sonarscan'
+}
+
+allprojects {
+    group = 'jp.co.yamaha_motor.gimac.tools'
+    version = '1.0.13-SNAPSHOT'
+}
+
+subprojects {
+    apply plugin: 'com.ymsl.solid.build.framework-library'
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+
+    plugins.withType(JavaPlugin) {
+        components.java.withVariantsFromConfiguration(configurations.runtimeElements) {
+            skip()
+        }
+
+        // タスクが既に存在するかを確認し、重複登録を防止する
+        if (!project.tasks.findByName('sourcesJar')) {
+            tasks.register("sourcesJar", Jar) {
+                archiveClassifier = 'sources'
+                from sourceSets.main.allJava
+            }
+        }
+
+        if (!project.tasks.findByName('javadocJar')) {
+            tasks.register("javadocJar", Jar) {
+                archiveClassifier = 'javadoc'
+                from javadoc.destinationDir
+            }
+        }
+    }
+
+    publishing {
+        repositories {
+            maven {
+                name = "githubPackages"
+                url = uri("https://maven.pkg.github.com/YMSL-J/gimac-common-tools")
+                credentials {
+                    username = providers.environmentVariable("PACKAGE_USERNAME").orElse('').get()
+                    password = providers.environmentVariable("PACKAGE_REPO_TOKEN").orElse('').get()
+                }
+            }
+        }
+    }
+
+    dependencies {
+        api "com.ymsl.solid:solid-jpa"
+        api "com.ymsl.solid:solid-web"
+        api "com.ymsl.solid:solid-redis"
+
+        // For single datasource
+        //No Jta use Hikari as the default connection pool.
+        api("com.zaxxer:HikariCP") {
+            exclude group: "org.slf4j", module: "slf4j-api"
+        }
+        api "jakarta.transaction:jakarta.transaction-api"
+        api "commons-net:commons-net:3.11.1"
+
+        //For multiple datasources and jta
+        //use atomikos.
+        //implementation "com.atomikos:transactions-spring-boot3-starter:${versions.atomikos}"
+
+        // AWS SDK dependencies
+        api 'software.amazon.awssdk:ses:2.31.40'
+        api 'software.amazon.awssdk:s3:2.31.40'
+        api 'software.amazon.awssdk:apache-client:2.31.40'
+        api 'software.amazon.awssdk:secretsmanager:2.31.40'
+
+        // Testing dependencies
+        testImplementation "com.ymsl.solid:solid-test"
+        testImplementation "com.h2database:h2"
+        testImplementation "org.postgresql:postgresql"
+        testImplementation 'org.apache.commons:commons-dbcp2:2.9.0'
+
+        //testCompile "org.flywaydb:flyway-core"
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
+
+}
