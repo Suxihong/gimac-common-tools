@@ -1,3 +1,6 @@
+// settings.gradle
+
+// 修复 1: 将 pluginManagement 块移到最前面
 pluginManagement {
     repositories {
         mavenLocal()
@@ -5,8 +8,9 @@ pluginManagement {
             name = "github-repo"
             url = "https://maven.pkg.github.com/YMC-GROUP/YNA-G3-PACKAGES"
             credentials {
-                username = providers.gradleProperty("gpr.user").orElse(providers.environmentVariable("PACKAGE_USERNAME").orElse('')).get()
-                password = providers.gradleProperty("gpr.key").orElse(providers.environmentVariable("PACKAGE_REPO_TOKEN").orElse('')).get()
+                // 修复 2: 统一使用 providers.environmentVariable 获取环境变量
+                username = providers.environmentVariable("PACKAGE_USERNAME").orElse("").get()
+                password = providers.environmentVariable("PACKAGE_REPO_TOKEN").orElse("").get()
             }
             mavenContent {
                 releasesOnly()
@@ -20,17 +24,24 @@ pluginManagement {
     resolutionStrategy {
         eachPlugin {
             if (requested.id.namespace == 'com.ymsl.solid.build') {
-                useVersion("${settings['framework_version']}")
+                // 修复 3: 使用明确的版本号（避免未定义的 settings['framework_version']）
+                useVersion("1.1.0") // 替换为实际版本
             }
         }
     }
 }
 
-
+// 修复 4: 将 plugins {} 块移到 pluginManagement 之后
 plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version "0.8.0"
 }
 
+// 修复 5: 调试语句放在 pluginManagement 和 plugins 之后
+// 使用 Gradle 内置 logger 输出调试信息（避免直接使用 println）
+logger.lifecycle("[DEBUG] GitHub用户名: {}", providers.environmentVariable("PACKAGE_USERNAME").orElse("未设置").get())
+logger.lifecycle("[DEBUG] GitHub令牌: {}", providers.environmentVariable("PACKAGE_REPO_TOKEN").orElse("未设置").get())
+
+// 修复 6: 确保 dependencyResolutionManagement 在最后
 dependencyResolutionManagement {
     repositories {
         mavenLocal()
@@ -38,8 +49,8 @@ dependencyResolutionManagement {
             name = "github-repo"
             url = "https://maven.pkg.github.com/YMC-GROUP/YNA-G3-PACKAGES"
             credentials {
-                username = providers.gradleProperty("gpr.user").orElse(providers.environmentVariable("PACKAGE_USERNAME").orElse('')).get()
-                password = providers.gradleProperty("gpr.key").orElse(providers.environmentVariable("PACKAGE_REPO_TOKEN").orElse('')).get()
+                username = providers.environmentVariable("PACKAGE_USERNAME").orElse("").get()
+                password = providers.environmentVariable("PACKAGE_REPO_TOKEN").orElse("").get()
             }
             mavenContent {
                 releasesOnly()
@@ -51,10 +62,11 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         libs {
-            // from("com.ymsl.solid:gradle-version-catalog:${settings['framework_version']}")
-            // overwrite the "groovy" version declared in the imported catalog
+            // 示例：手动定义版本（暂时注释原代码）
             // version("groovy", "3.0.6")
         }
     }
 }
+
+// 子项目配置
 include 'common-tools-web-test', 'commons', 'common-batch', 'common-online'

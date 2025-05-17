@@ -61,3 +61,19 @@ The source jars or dependencies can be downloaded by this command.
    ```shell
      gradlew appRun -PappProfiles=production
    ```
+
+### codespaces中设置github凭证的方法
+
+- 永久
+
+  ```
+    echo "export GITHUB_USERNAME=你的GitHub用户名" >> ~/.bashrc
+    echo "export GITHUB_TOKEN=你的PAT令牌值" >> ~/.bashrc
+    source ~/.bashrc
+  ```
+
+- 临时
+
+  ```
+    export GITHUB_TOKEN="your_token"
+  ```
